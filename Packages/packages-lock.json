@@ -77,10 +77,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.robotics.ros-tcp-connector": {
-      "version": "file:/home/carlostojal/ROS-TCP-Connector/com.unity.robotics.ros-tcp-connector",
+      "version": "https://github.com/Unity-Technologies/ROS-TCP-Connector.git?path=/com.unity.robotics.ros-tcp-connector",
       "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "c27f00c6cf750d2d0564349b3039d19aa3925e7c"
     },
     "com.unity.services.core": {
       "version": "1.4.2",
@@ -98,6 +99,22 @@
       "depth": 2,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.sysroot": {
+      "version": "2.0.4",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.sysroot.linux-x86_64": {
+      "version": "2.0.3",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.sysroot": "2.0.4"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
@@ -139,6 +156,16 @@
         "com.unity.modules.animation": "1.0.0",
         "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.particlesystem": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.toolchain.win-x86_64-linux-x86_64": {
+      "version": "2.0.3",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.sysroot": "2.0.4",
+        "com.unity.sysroot.linux-x86_64": "2.0.3"
       },
       "url": "https://packages.unity.com"
     },
