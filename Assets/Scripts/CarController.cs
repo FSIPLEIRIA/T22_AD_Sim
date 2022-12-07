@@ -29,6 +29,12 @@ public class CarController : MonoBehaviour{
 	    }
 	}
     void Control(AckermannDriveMsg msg){
+		//convert steeringAngle to radians and compare to msg.steering_angle
+		if(msg.steering_angle !=steeringAngle){
+			//time to fly
+			StartCoroutine(TimeToFlySteering(msg.steering_angle, msg.steering_angle_velocity));
+		}
+
 		
 	}
 	void FixedUpdate(){
@@ -39,15 +45,23 @@ public class CarController : MonoBehaviour{
         
     }
 	//simplification of it but im sleepy and it werks for now
-
+	IEnumerator TimeToFlySteering(double objective_steer, double steering_angle_velocity){
+		//while objective_steer is not reached lerp add steering_angle_velocity to steeringAngle
+		while(objective_steer!=steeringAngle){
+			steeringAngle = Mathf.Lerp((float)steeringAngle, (float)objective_steer, (float)steering_angle_velocity);
+			yield return new WaitForSeconds(1f);
+		}
+		yield return null;
+	}
 	void Steer(double angle=0){
 		if(angle>0){
-			frontWheels[0].steerAngle=(float)(angle); 
-			frontWheels[1].steerAngle=(float)(angle*ackermannRatio);
+			frontWheels[0].steerAngle=(float)(angle)*Mathf.Rad2Deg; 
+			frontWheels[1].steerAngle=(float)(angle*ackermannRatio)*Mathf.Rad2Deg;
 		}else{
-			frontWheels[0].steerAngle=(float)(angle*ackermannRatio); 
-			frontWheels[1].steerAngle=(float)(angle);
+			frontWheels[0].steerAngle=(float)(angle*ackermannRatio)*Mathf.Rad2Deg;
+			frontWheels[1].steerAngle=(float)(angle)*Mathf.Rad2Deg;
 		}
 	}
+
 
 }

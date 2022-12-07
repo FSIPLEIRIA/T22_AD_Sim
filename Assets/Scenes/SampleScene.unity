@@ -1039,7 +1039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controlTopicName: /ackermann_control
-  wheelbase: 1550
+  wheelbase: 1.55
   cogToRear: 0.775
   mass: 150
   maxSpeed: 10
