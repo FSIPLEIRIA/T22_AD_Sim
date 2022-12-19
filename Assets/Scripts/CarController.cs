@@ -5,9 +5,11 @@ using Unity.Robotics.ROSTCPConnector;
 using RosMessageTypes.Ackermann;
 using System.IO;
 using System;
+using T22_AD_Sim.Assets.Scripts;
 
 public class CarController : MonoBehaviour{
     ROSConnection ros;
+	IMaxSteeringSpeedModel maxSteeringSpeedModel;
     public string controlTopicName = "/ackermann_control";
     public double wheelbase = 1550; // in cm
     public double cogToRear = 0.775; // center of gravity to rear wheel axis
@@ -15,16 +17,24 @@ public class CarController : MonoBehaviour{
 	const double trackDivDoublelenght= 0.3871d; //track divided by double length 
     public double mass = 270; // in kg
     public double maxSpeed = 10; // m/s
-    private double steeringAngle = 0; //radian based
+	//testing only
+	public double visibleSteeringAngle;
+    
+	private double steeringAngle = 0; //radian based
 	public double motorTorque=80; //in nm
-
+	
     public double maxSteeringAngle =(double)(2*Math.PI/9); // +/-
-	//private double ackermannRatio=1.1; 
+	//private double ackermannRatio=1.1;
 
     public WheelCollider[] backWheels = new WheelCollider[2];
 	public WheelCollider[] frontWheels = new WheelCollider[2];
 	
 	void Start(){
+		//Select the models
+		maxSteeringSpeedModel = new SteeringSpeedAnt();
+
+
+
 		//get rigidbody and set mass to this mass
 		Rigidbody rb = GetComponent<Rigidbody>();
 		rb.mass = (float)mass;
@@ -38,19 +48,27 @@ public class CarController : MonoBehaviour{
     void Control(AckermannDriveMsg msg){
 		//convert steeringAngle to radians and compare to msg.steering_angle
 		if(msg.steering_angle !=steeringAngle){
+			double angle_vel=(double)msg.steering_angle_velocity;
+			double angle=(double) Math.Clamp(msg.steering_angle,-maxSteeringAngle,maxSteeringAngle);
+			var max = maxSteeringAngleSpeed(); 
+			if(msg.steering_angle_velocity==0){
+				angle_vel =max;
+			}
+			angle_vel= Math.Clamp(angle_vel, -max, max);
 			//time to fly
-			StartCoroutine(TimeToFlySteering(msg.steering_angle, msg.steering_angle_velocity,1));
+			StartCoroutine(TimeToFlySteering(angle,angle_vel,1));
 		}
 
 		
 	}
 	void FixedUpdate(){
 		Steer(steeringAngle); 
-		
+		visibleSteeringAngle=(double)steeringAngle*Mathf.Rad2Deg;
 	}
     void Update(){
         
     }
+	
 	//simplification of it but im sleepy and it werks for now
 	IEnumerator TimeToFlySteering(double objective_steer, double steering_angle_velocity, int interpolation=100){
 		//while objective_steer is not reached lerp add steering_angle_velocity to steeringAngle
@@ -73,6 +91,13 @@ public class CarController : MonoBehaviour{
 			frontWheels[1].steerAngle=outer_angle*Mathf.Rad2Deg;
 		}
 	}
-
+	public double maxSteeringAngleSpeed(){
+		try{
+			return maxSteeringSpeedModel.getUnsafeMaxSteeringSpeed();
+		}catch(NotImplementedException e){
+			Debug.Log(e);
+			return maxSteeringSpeedModel.getSafeMaxSteeringSpeed();
+		}
+	}
 
 }
