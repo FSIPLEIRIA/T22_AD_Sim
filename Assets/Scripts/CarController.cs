@@ -5,9 +5,11 @@ using Unity.Robotics.ROSTCPConnector;
 using RosMessageTypes.Ackermann;
 using System.IO;
 using System;
+using T22_AD_Sim.Assets.Scripts;
 
 public class CarController : MonoBehaviour{
     ROSConnection ros;
+	IMaxSteeringSpeedModel maxSteeringSpeedModel;
     public string controlTopicName = "/ackermann_control";
 	
 	[Header("car/parts dimensions")]
@@ -48,6 +50,7 @@ public class CarController : MonoBehaviour{
     public double maxSpeed = 10; // m/s
     private double steeringAngle = 0; //radian based
     public double maxSteeringAngle = (double)(2*Math.PI/9); // +/-
+	public double visibleSteeringAngle;
 	
 	[Header("External Forces")]
 	const double gravity = 9.80665; //gravitational acceleration in m/s^2
@@ -62,6 +65,11 @@ public class CarController : MonoBehaviour{
 	Rigidbody rb;
 
 	void Start(){
+		//Select the models
+		maxSteeringSpeedModel = new SteeringSpeedAnt();
+
+
+
 		//get rigidbody and set mass to this mass
 		rb = GetComponent<Rigidbody>();
 		rb.mass = (float)mass;
@@ -78,16 +86,24 @@ public class CarController : MonoBehaviour{
 		}
 		//convert steeringAngle to radians and compare to msg.steering_angle
 		if(msg.steering_angle !=steeringAngle){
+			double angle_vel=(double)msg.steering_angle_velocity;
+			double angle=(double) Math.Clamp(msg.steering_angle,-maxSteeringAngle,maxSteeringAngle);
+			var max = maxSteeringAngleSpeed(); 
+			if(msg.steering_angle_velocity==0){
+				angle_vel =max;
+			}
+			angle_vel= Math.Clamp(angle_vel, -max, max);
 			//time to fly
-			StartCoroutine(TimeToFlySteering(msg.steering_angle, msg.steering_angle_velocity));
+			StartCoroutine(TimeToFlySteering(msg.steering_angle, msg.steering_angle_velocity,1));
 		}
 	}
 	void FixedUpdate(){
-		Steer(steeringAngle);
-		Drive(speed);
+		Steer(steeringAngle); 
+		
 	}
     void Update(){
     }
+	
 	//simplification of it but im sleepy and it werks for now
 	IEnumerator TimeToFlySteering(double objective_steer, double steering_angle_velocity, int interpolation=1000){
 		//while objective_steer is not reached lerp add steering_angle_velocity to steeringAngle
@@ -147,10 +163,14 @@ public class CarController : MonoBehaviour{
 			frontWheels[1].steerAngle=outer_angle*Mathf.Rad2Deg;
 		}
 	}
-
-	void Drive(double speed=0){
-		//Apply to wheels
-		backWheels[0].motorTorque=(float)speed;
-		backWheels[1].motorTorque=(float)speed;
+	public double maxSteeringAngleSpeed(){
+		try{
+			return maxSteeringSpeedModel.getUnsafeMaxSteeringSpeed();
+		}catch(NotImplementedException e){
+			Debug.Log(e);
+			return maxSteeringSpeedModel.getSafeMaxSteeringSpeed();
+		}
 	}
+
+
 }

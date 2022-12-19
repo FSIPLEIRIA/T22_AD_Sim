@@ -75,3 +75,5 @@ UnityPlayer.so
 
 # Comment if you wish to share the terrains elevation, detail and tree data
 # New Terrain*.asset
+
+PerformanceTests/*.exe
