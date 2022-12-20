@@ -3,18 +3,71 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using T22_AD_Sim.Assets.Scripts;
+using T22_AD_Sim.Assets.Scripts.Editor;
+
+
 //custom editor for AgrerateBody
 [CustomEditor(typeof(AgreggateBody))]
-public class AgreggateBodyEditor : Editor
-{
+public class AgreggateBodyEditor : Editor{
+	bool firstToggle=false;
+	List<UnityEngine.Shader> shaders=new List<UnityEngine.Shader>();
+
 	public override void OnInspectorGUI()
 	{
 		DrawDefaultInspector();
 		AgreggateBody myScript = (AgreggateBody)target;
+		
 		if(GUILayout.Button("Recalculate Center Of Mass"))
 		{
 			myScript.calculateCOOM();
+		}
+
+		//the checkbox was already turned on skip everything TOOPTIMZE 
+		if(!firstToggle){
+
+			firstToggle = GUILayout.Toggle(firstToggle, "Color By Mass shader");
+			if(firstToggle){
+
+				//get gameobject associated with this
+				GameObject gameObject=myScript.gameObject;
+				// TO OPTIMIZE: it sucks but i dont make the rules...This should be an outwards function
+				double maxWeight=0;
+				//get all children
+				ComponentBody[] componentBodies=gameObject.GetComponentsInChildren<ComponentBody>();
+				//iterate through all children
+				foreach(ComponentBody componentBody in componentBodies){
+					//if componentBody.mass is greater than maxWeight
+					if(componentBody.mass>maxWeight){
+						//set maxWeight to componentBody.mass
+						maxWeight=componentBody.mass;
+					}
+					shaders.Clear();
+				}
+				
+				
+				foreach(ComponentBody componentBody in componentBodies){
+					
+					shaders.Add(componentBody.GetComponent<Renderer>().material.shader);
+					componentBody.GetComponent<Renderer>().material.shader=Shader.Find("T22_AD_Sim/AgregateMass");
+					componentBody.GetComponent<Renderer>().material.SetFloat("_Weight", (float)(componentBody.mass/maxWeight));
+
+				}
+				
+			}else{
+				//get gameobject associated with this
+				GameObject gameObject=myScript.gameObject;
+				//get all children
+				ComponentBody[] componentBodies=gameObject.GetComponentsInChildren<ComponentBody>();
+				//iterate through all children
+				int k= 0;
+				foreach(ComponentBody componentBody in componentBodies){
+					componentBody.GetComponent<Renderer>().material.shader=shaders[k++];
+					
+				}
+				shaders.Clear();
+			}
+		}else{
+			firstToggle = GUILayout.Toggle(firstToggle, "Color By Mass shader");
 		}
 	}
 }

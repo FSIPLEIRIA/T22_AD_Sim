@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-namespace T22_AD_Sim.Assets.Scripts {
+namespace T22_AD_Sim.Assets.Scripts.Editor {
 	
 	[CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
 	public class ReadOnlyDrawer : PropertyDrawer{
